@@ -1,0 +1,2 @@
+﻿
+namespace DotnetSixIntro.Domain.OtherStuff;

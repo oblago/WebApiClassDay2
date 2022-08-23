@@ -1,0 +1,31 @@
+
+
+GET http://localhost:9090/greeting HTTP/1.1
+Accept: application/json
+
+
+### Route Parameters
+
+GET http://localhost:9090/employees/bob-smith HTTP/1.1
+Accept: application/json
+
+
+### Route Parameters
+
+GET http://localhost:9090/employees/greg-jones HTTP/1.1
+Accept: application/json
+
+
+### Getting the Collection
+GET http://localhost:9090/employees/ HTTP/1.1
+Accept: application/json
+
+
+### Filtering the Collection
+GET http://localhost:9090/employees?department=DEV HTTP/1.1
+Accept: application/json
+
+
+### Blogs
+GET http://localhost:9090/blogs/2022/10/25 HTTP/1.1
+User-Agent: Lincoln Town Car
