@@ -30,7 +30,7 @@ builder.Services.AddHttpClient<HrApiAdapter>(client =>
     client.BaseAddress = new Uri(builder.Configuration.GetValue<string>("hr-api-url"));
     client.Timeout = TimeSpan.FromSeconds(5);
     client.DefaultRequestHeaders.Add("User-Agent", "CoursesApi");
-});
+}).AddPolicyHandler(SrePolicies.BasicRetryPolicy()).AddPolicyHandler(SrePolicies.CircuitBreakerPolicy());
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

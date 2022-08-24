@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Linq.Expressions;
 
@@ -14,12 +16,16 @@ public class CourseManager
     private readonly ProjectionDefinition<CourseEntity, CourseSummaryItemResponse> _projectToCourseSummary;
     private readonly Expression<Func<CourseEntity, CourseDetailsResponse>> _mapCourseToDetailsExpression;
 
-   
+    private readonly IOptions<DevelopmentFlags> _options;
+    private readonly ILogger<CourseManager> _logger;
+
     private readonly Func<CourseEntity, CourseDetailsResponse> _mapCourseToDetailsFunc;
-    public CourseManager(MongoDbCoursesAdapter adapter, HrApiAdapter hrApiAdapter)
+    public CourseManager(MongoDbCoursesAdapter adapter, HrApiAdapter hrApiAdapter, IOptions<DevelopmentFlags> options,
+        ILogger<CourseManager> logger)
     {
         _adapter = adapter;
         _hrApiAdapter = hrApiAdapter;
+        _logger = logger;
         _filterAllCourses = Builders<CourseEntity>.Filter.Where(c => c.IsRemoved == false);
         _mapCourseToDetailsExpression = (CourseEntity c) => new CourseDetailsResponse
         {
@@ -37,6 +43,7 @@ public class CourseManager
         });
 
         _mapCourseToDetailsFunc = _mapCourseToDetailsExpression.Compile();
+        _options = options;
     }
 
     public async Task<CoursesResponse> GetAllCoursesAsync(CancellationToken ct)
@@ -82,8 +89,24 @@ public class CourseManager
                 .Project(_projectToCourseDetails)
                 .SingleOrDefaultAsync();
 
-        var instructor = await _hrApiAdapter.GetInstructorInfoForCourseAsync(courseId.ToString());
-        response.Instructor = instructor;
+        try
+        {
+            var instructor = await _hrApiAdapter.GetInstructorInfoForCourseAsync(courseId.ToString());
+            response.Instructor = instructor;
+        }
+        catch (Exception ex)
+        {
+            //Plan b here
+            _logger.LogCritical("getting the instructor failed", ex);
+
+            //corny plan
+
+            response.Instructor = new InstructorInfo
+            {
+                Name = "No Instrictor found",
+                EmailAddress = "helpdesk.."
+            };
+        }
         return response;
 
     }
